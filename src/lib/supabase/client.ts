@@ -193,6 +193,265 @@ export interface Database {
           timestamp?: string;
         };
       };
+      usage_events: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          user_id: string | null;
+          event_type: string;
+          feature_name: string | null;
+          usage_amount: number;
+          metadata: any;
+          timestamp: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          user_id?: string | null;
+          event_type: string;
+          feature_name?: string | null;
+          usage_amount?: number;
+          metadata?: any;
+          timestamp?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          user_id?: string | null;
+          event_type?: string;
+          feature_name?: string | null;
+          usage_amount?: number;
+          metadata?: any;
+          timestamp?: string;
+        };
+      };
+      subscription_tiers: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          tier_name: string;
+          tier_level: number;
+          monthly_price: number;
+          annual_price: number | null;
+          api_limit: number | null;
+          feature_limits: any;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          tier_name: string;
+          tier_level: number;
+          monthly_price: number;
+          annual_price?: number | null;
+          api_limit?: number | null;
+          feature_limits?: any;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          tier_name?: string;
+          tier_level?: number;
+          monthly_price?: number;
+          annual_price?: number | null;
+          api_limit?: number | null;
+          feature_limits?: any;
+          is_active?: boolean;
+          updated_at?: string;
+        };
+      };
+      revenue_analytics: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          period_start: string;
+          period_end: string;
+          mrr: number;
+          arr: number;
+          new_customers: number;
+          churned_customers: number;
+          upgraded_customers: number;
+          downgraded_customers: number;
+          total_customers: number;
+          churn_rate: number;
+          ltv: number;
+          cac: number;
+          arpu: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          period_start: string;
+          period_end: string;
+          mrr?: number;
+          arr?: number;
+          new_customers?: number;
+          churned_customers?: number;
+          upgraded_customers?: number;
+          downgraded_customers?: number;
+          total_customers?: number;
+          churn_rate?: number;
+          ltv?: number;
+          cac?: number;
+          arpu?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          period_start?: string;
+          period_end?: string;
+          mrr?: number;
+          arr?: number;
+          new_customers?: number;
+          churned_customers?: number;
+          upgraded_customers?: number;
+          downgraded_customers?: number;
+          total_customers?: number;
+          churn_rate?: number;
+          ltv?: number;
+          cac?: number;
+          arpu?: number;
+        };
+      };
+      alerts: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          user_id: string | null;
+          alert_type: string;
+          severity: string;
+          title: string;
+          message: string;
+          metadata: any;
+          is_read: boolean;
+          is_dismissed: boolean;
+          created_at: string;
+          expires_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          user_id?: string | null;
+          alert_type: string;
+          severity?: string;
+          title: string;
+          message: string;
+          metadata?: any;
+          is_read?: boolean;
+          is_dismissed?: boolean;
+          created_at?: string;
+          expires_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          user_id?: string | null;
+          alert_type?: string;
+          severity?: string;
+          title?: string;
+          message?: string;
+          metadata?: any;
+          is_read?: boolean;
+          is_dismissed?: boolean;
+          expires_at?: string | null;
+        };
+      };
+      tier_performance: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          tier_id: string | null;
+          period_start: string;
+          period_end: string;
+          active_subscriptions: number;
+          new_subscriptions: number;
+          churned_subscriptions: number;
+          upgrade_from_count: number;
+          upgrade_to_count: number;
+          avg_usage_percentage: number;
+          overage_events: number;
+          revenue: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          tier_id?: string | null;
+          period_start: string;
+          period_end: string;
+          active_subscriptions?: number;
+          new_subscriptions?: number;
+          churned_subscriptions?: number;
+          upgrade_from_count?: number;
+          upgrade_to_count?: number;
+          avg_usage_percentage?: number;
+          overage_events?: number;
+          revenue?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          tier_id?: string | null;
+          period_start?: string;
+          period_end?: string;
+          active_subscriptions?: number;
+          new_subscriptions?: number;
+          churned_subscriptions?: number;
+          upgrade_from_count?: number;
+          upgrade_to_count?: number;
+          avg_usage_percentage?: number;
+          overage_events?: number;
+          revenue?: number;
+        };
+      };
+      usage_aggregations: {
+        Row: {
+          id: string;
+          tenant_id: string;
+          user_id: string | null;
+          aggregation_period: string;
+          period_start: string;
+          period_end: string;
+          api_calls: number;
+          feature_usage: any;
+          session_duration_minutes: number;
+          unique_features_used: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          tenant_id: string;
+          user_id?: string | null;
+          aggregation_period: string;
+          period_start: string;
+          period_end: string;
+          api_calls?: number;
+          feature_usage?: any;
+          session_duration_minutes?: number;
+          unique_features_used?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          tenant_id?: string;
+          user_id?: string | null;
+          aggregation_period?: string;
+          period_start?: string;
+          period_end?: string;
+          api_calls?: number;
+          feature_usage?: any;
+          session_duration_minutes?: number;
+          unique_features_used?: number;
+        };
+      };
     };
   };
 }

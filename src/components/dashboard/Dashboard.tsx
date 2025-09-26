@@ -9,9 +9,11 @@ import {
   BarChart3,
   Plus,
   Search,
-  Filter
+  Filter,
+  TrendingUp
 } from 'lucide-react';
 import ChatInterface from '../chatbot/ChatInterface';
+import SaaSAnalyticsDashboard from '../analytics/SaaSAnalyticsDashboard';
 
 interface DashboardProps {
   tenantId: string;
@@ -35,7 +37,7 @@ interface ChatSession {
 }
 
 export default function Dashboard({ tenantId, userId }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'chat' | 'sessions' | 'settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'chat' | 'sessions' | 'settings'>('overview');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,6 +116,7 @@ export default function Dashboard({ tenantId, userId }: DashboardProps) {
         <nav className="-mb-px flex space-x-8">
           {[
             { id: 'overview', label: 'Overview', icon: BarChart3 },
+            { id: 'analytics', label: 'SaaS Analytics', icon: TrendingUp },
             { id: 'chat', label: 'Chat', icon: MessageSquare },
             { id: 'sessions', label: 'Sessions', icon: Users },
             { id: 'settings', label: 'Settings', icon: Settings },
@@ -192,6 +195,10 @@ export default function Dashboard({ tenantId, userId }: DashboardProps) {
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'analytics' && (
+        <SaaSAnalyticsDashboard tenantId={tenantId} />
       )}
 
       {activeTab === 'chat' && (

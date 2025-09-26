@@ -13,10 +13,42 @@ export default function Home() {
   const [showDashboard, setShowDashboard] = useState(false);
   const [showEnhancedChat, setShowEnhancedChat] = useState(false);
   const [showChatDashboard, setShowChatDashboard] = useState(false);
+  const [initializingDemo, setInitializingDemo] = useState(false);
   
   // Demo data - in real app, this would come from authentication
   const demoTenantId = 'demo-tenant-123';
   const demoUserId = 'demo-user-456';
+
+  const initializeAnalyticsDemo = async () => {
+    setInitializingDemo(true);
+    try {
+      // Seed the analytics data
+      const response = await fetch('/api/analytics/seed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tenantId: demoTenantId }),
+      });
+
+      if (response.ok) {
+        // Generate alerts
+        await fetch('/api/analytics/alerts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'generate',
+            tenantId: demoTenantId 
+          }),
+        });
+
+        // Switch to dashboard view
+        setShowDashboard(true);
+      }
+    } catch (error) {
+      console.error('Failed to initialize analytics demo:', error);
+    } finally {
+      setInitializingDemo(false);
+    }
+  };
 
   const features = [
     {
@@ -137,7 +169,7 @@ export default function Home() {
               Standalone, reusable AI chatbot that guides SaaS creators through Stripe integration 
               and platform workflows via natural language. Plug-and-play for any application.
             </p>
-            <div className="mt-10 flex items-center justify-center space-x-6">
+            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
               <button
                 onClick={() => setShowEnhancedChat(true)}
                 className="flex items-center space-x-2 px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 transition-colors"
@@ -146,10 +178,18 @@ export default function Home() {
                 <span>Try Enhanced Demo</span>
               </button>
               <button
+                onClick={initializeAnalyticsDemo}
+                disabled={initializingDemo}
+                className="flex items-center space-x-2 px-8 py-3 bg-green-600 text-white text-lg font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+              >
+                <BarChart3 className="w-5 h-5" />
+                <span>{initializingDemo ? 'Initializing...' : 'Try SaaS Analytics'}</span>
+              </button>
+              <button
                 onClick={() => setShowChatDashboard(true)}
                 className="flex items-center space-x-2 px-8 py-3 bg-white text-gray-900 text-lg font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
               >
-                <span>View Analytics Dashboard</span>
+                <span>View Dashboard</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
