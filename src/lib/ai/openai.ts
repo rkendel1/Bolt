@@ -51,9 +51,15 @@ Always respond in a helpful, professional manner and ask clarifying questions wh
       knowledgeBase?: KnowledgeBaseEntry[];
       stripeContext?: any;
       workflowContext?: any;
+      executionResult?: any;
     }
   ): Promise<string> {
     try {
+      // If execution result has a direct message, use it
+      if (context?.executionResult?.message && context.executionResult.success) {
+        return context.executionResult.message;
+      }
+
       // Prepare conversation history
       const conversationMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
