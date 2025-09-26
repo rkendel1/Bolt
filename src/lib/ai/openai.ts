@@ -20,28 +20,48 @@ export class AIService {
   }
 
   private getSystemPrompt(config: ChatbotConfig): string {
-    return `You are Bolt, an AI assistant specialized in helping SaaS creators with Stripe integration and platform workflows. You have comprehensive knowledge of Stripe APIs, payment processing, subscription management, and SaaS best practices.
+    return `You are Bolt, an intelligent AI assistant specialized in helping SaaS creators build, scale, and optimize their applications. You have comprehensive knowledge of Stripe APIs, payment processing, subscription management, SaaS architecture, and industry best practices.
 
-Key capabilities:
-- Stripe API guidance and implementation help
-- Payment flow setup and troubleshooting
-- Subscription management assistance
-- Multi-tenant SaaS architecture advice
-- Security best practices for payment processing
-- Webhook configuration and handling
-- Platform onboarding guidance
+**Core Expertise:**
+- Stripe API integration and payment processing
+- SaaS subscription lifecycle management
+- Multi-tenant architecture design
+- Security best practices and compliance
+- Performance optimization and scaling
+- Workflow automation and guidance
+- Troubleshooting and error resolution
+- Tutorial and step-by-step guidance
 
-Guidelines:
-1. Always prioritize security when handling payment information
-2. Provide clear, actionable guidance with code examples when helpful
-3. Reference official Stripe documentation when applicable
-4. Consider multi-tenant implications in your responses
-5. Suggest testing approaches for payment flows
-6. Be aware of PCI compliance requirements
+**Guidance Principles:**
+1. **Security First**: Always prioritize security in payment handling and data protection
+2. **Actionable Advice**: Provide clear, implementable solutions with code examples
+3. **Context Awareness**: Consider the user's current setup and multi-tenant implications
+4. **Best Practices**: Recommend industry-standard approaches and patterns
+5. **Proactive Warnings**: Alert users to common pitfalls and potential issues
+6. **Testing Emphasis**: Always suggest proper testing strategies
+7. **Compliance Awareness**: Consider PCI DSS, GDPR, and other regulatory requirements
 
-Current tenant features enabled: ${JSON.stringify(config.enabled_features)}
+**Response Style:**
+- Be conversational but professional
+- Ask clarifying questions when context is unclear
+- Provide step-by-step guidance for complex tasks
+- Include warnings about common mistakes
+- Suggest next steps and related considerations
+- Reference official documentation when appropriate
 
-Always respond in a helpful, professional manner and ask clarifying questions when needed to provide the most relevant assistance.`;
+**Current Tenant Configuration:**
+- Features enabled: ${JSON.stringify(config.enabled_features)}
+- Model: ${config.model}
+- Multi-tenant: ${config.enabled_features.multi_tenant ? 'Yes' : 'No'}
+
+**Instructions:**
+- For tutorials, provide complete, working examples
+- For troubleshooting, ask diagnostic questions
+- For architecture advice, consider scalability and maintainability
+- For security questions, be thorough and specific
+- Always confirm understanding before proceeding with complex implementations
+
+You are here to be a helpful, knowledgeable partner in building successful SaaS applications.`;
   }
 
   async generateResponse(
@@ -55,11 +75,6 @@ Always respond in a helpful, professional manner and ask clarifying questions wh
     }
   ): Promise<string> {
     try {
-      // If execution result has a direct message, use it
-      if (context?.executionResult?.message && context.executionResult.success) {
-        return context.executionResult.message;
-      }
-
       // Prepare conversation history
       const conversationMessages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
         {
@@ -70,13 +85,19 @@ Always respond in a helpful, professional manner and ask clarifying questions wh
 
       // Add knowledge base context if available
       if (context?.knowledgeBase && context.knowledgeBase.length > 0) {
-        const knowledgeContext = context.knowledgeBase
-          .map(entry => `${entry.title}: ${entry.content}`)
-          .join('\n\n');
-        
+        const knowledgeContext = this.formatKnowledgeBaseContext(context.knowledgeBase);
         conversationMessages.push({
           role: 'system',
-          content: `Relevant knowledge base entries:\n${knowledgeContext}`,
+          content: `**Relevant Knowledge Base Information:**\n${knowledgeContext}`,
+        });
+      }
+
+      // Add execution result as context if available
+      if (context?.executionResult) {
+        const executionContext = this.formatExecutionContext(context.executionResult);
+        conversationMessages.push({
+          role: 'system',
+          content: `**Previous Action Result:**\n${executionContext}`,
         });
       }
 
@@ -84,7 +105,15 @@ Always respond in a helpful, professional manner and ask clarifying questions wh
       if (context?.stripeContext) {
         conversationMessages.push({
           role: 'system',
-          content: `Current Stripe context: ${JSON.stringify(context.stripeContext)}`,
+          content: `**Current Stripe Context:**\n${JSON.stringify(context.stripeContext, null, 2)}`,
+        });
+      }
+
+      // Add workflow context if available
+      if (context?.workflowContext) {
+        conversationMessages.push({
+          role: 'system',
+          content: `**Current Workflow Context:**\n${JSON.stringify(context.workflowContext, null, 2)}`,
         });
       }
 
@@ -109,6 +138,9 @@ Always respond in a helpful, professional manner and ask clarifying questions wh
         model: config.model,
         tokens_used: completion.usage?.total_tokens,
         response_length: response.length,
+        knowledge_entries_used: context?.knowledgeBase?.length || 0,
+        has_execution_result: !!context?.executionResult,
+        has_stripe_context: !!context?.stripeContext,
       }, {
         tenantId: config.tenant_id,
       });
@@ -126,24 +158,136 @@ Always respond in a helpful, professional manner and ask clarifying questions wh
     }
   }
 
+  private formatKnowledgeBaseContext(entries: KnowledgeBaseEntry[]): string {
+    return entries.map(entry => {
+      const metadata = entry.metadata ? ` (${Object.entries(entry.metadata).map(([k, v]) => `${k}: ${v}`).join(', ')})` : '';
+      return `**${entry.title}** [${entry.type}]${metadata}\n${entry.content}\nTags: ${entry.tags.join(', ')}`;
+    }).join('\n\n---\n\n');
+  }
+
+  private formatExecutionContext(executionResult: any): string {
+    const status = executionResult.success ? '✅ Success' : '❌ Failed';
+    let context = `${status}\n`;
+    
+    if (executionResult.message) {
+      context += `Message: ${executionResult.message}\n`;
+    }
+    
+    if (executionResult.actions_taken && executionResult.actions_taken.length > 0) {
+      context += `Actions taken: ${executionResult.actions_taken.join(', ')}\n`;
+    }
+    
+    if (executionResult.data) {
+      context += `Data: ${JSON.stringify(executionResult.data, null, 2)}\n`;
+    }
+    
+    if (executionResult.error) {
+      context += `Error: ${executionResult.error}\n`;
+    }
+    
+    return context;
+  }
+
   async searchKnowledgeBase(
     query: string,
     tenantId: string,
     limit: number = 5
   ): Promise<KnowledgeBaseEntry[]> {
     try {
-      // Simple text search - in production, you might want to use vector embeddings
-      const { data, error } = await supabaseAdmin
-        .from('knowledge_base')
-        .select('*')
-        .or(`title.ilike.%${query}%,content.ilike.%${query}%,tags.cs.{${query}}`)
-        .limit(limit);
-
-      if (error) {
-        throw new Error(`Failed to search knowledge base: ${error.message}`);
+      // Enhanced search with multiple strategies
+      const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 2);
+      
+      if (searchTerms.length === 0) {
+        return [];
       }
 
-      return data || [];
+      // Build search query for PostgreSQL full-text search and pattern matching
+      const searchQuery = `
+        SELECT *, 
+        (
+          -- Score based on title match (highest weight)
+          CASE WHEN LOWER(title) LIKE $1 THEN 100 ELSE 0 END +
+          -- Score based on exact phrase match in content
+          CASE WHEN LOWER(content) LIKE $1 THEN 50 ELSE 0 END +
+          -- Score based on individual term matches
+          ${searchTerms.map((_, index) => 
+            `CASE WHEN LOWER(title) LIKE $${index + 2} THEN 20 ELSE 0 END +
+             CASE WHEN LOWER(content) LIKE $${index + 2} THEN 10 ELSE 0 END`
+          ).join(' + ')} +
+          -- Score based on tag matches
+          ${searchTerms.map((_, index) => 
+            `CASE WHEN $${index + 2 + searchTerms.length} = ANY(LOWER(tags::text)::text[]) THEN 30 ELSE 0 END`
+          ).join(' + ')} +
+          -- Score based on category match
+          CASE WHEN LOWER(category) LIKE $${2 + searchTerms.length * 2} THEN 15 ELSE 0 END
+        ) as relevance_score
+        FROM knowledge_base 
+        WHERE (
+          LOWER(title) LIKE $1 OR 
+          LOWER(content) LIKE $1 OR
+          ${searchTerms.map((_, index) => 
+            `LOWER(title) LIKE $${index + 2} OR 
+             LOWER(content) LIKE $${index + 2} OR
+             $${index + 2 + searchTerms.length} = ANY(LOWER(tags::text)::text[])`
+          ).join(' OR ')} OR
+          LOWER(category) LIKE $${2 + searchTerms.length * 2}
+        )
+        ORDER BY relevance_score DESC, created_at DESC
+        LIMIT $${3 + searchTerms.length * 2}
+      `;
+
+      const queryParams = [
+        `%${query.toLowerCase()}%`, // Full query match
+        ...searchTerms.map(term => `%${term}%`), // Individual term matches for title/content
+        ...searchTerms.map(term => term), // Individual terms for tag matches
+        `%${query.toLowerCase()}%`, // Category match
+        limit
+      ];
+
+      const { data, error } = await supabaseAdmin.rpc('execute_search_query', {
+        query_text: searchQuery,
+        query_params: queryParams
+      }).then(result => {
+        // If custom function doesn't exist, fall back to simple search
+        if (result.error) {
+          return supabaseAdmin
+            .from('knowledge_base')
+            .select('*')
+            .or(`title.ilike.%${query}%,content.ilike.%${query}%,tags.cs.{${searchTerms.join(',')}}`)
+            .limit(limit);
+        }
+        return result;
+      });
+
+      if (error) {
+        // Fallback to simple search if advanced search fails
+        const fallbackResult = await supabaseAdmin
+          .from('knowledge_base')
+          .select('*')
+          .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
+          .limit(limit);
+        
+        if (fallbackResult.error) {
+          throw new Error(`Failed to search knowledge base: ${fallbackResult.error.message}`);
+        }
+        
+        return fallbackResult.data || [];
+      }
+
+      // Filter out low-relevance results if we have a relevance score
+      const results = (data || []).filter((entry: any) => 
+        !entry.relevance_score || entry.relevance_score > 5
+      );
+
+      await boltLogger.info('Knowledge base search performed', {
+        query,
+        results_count: results.length,
+        search_terms: searchTerms,
+      }, {
+        tenantId,
+      });
+
+      return results;
     } catch (error) {
       await boltLogger.error('Failed to search knowledge base', {
         error: error instanceof Error ? error.message : 'Unknown error',
