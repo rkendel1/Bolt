@@ -13,8 +13,10 @@ import {
   BarChart3,
   PieChart,
   LineChart,
-  RefreshCw
+  RefreshCw,
+  Bell
 } from 'lucide-react';
+import AnalyticsOverview from './AnalyticsOverview';
 
 interface SaaSAnalyticsDashboardProps {
   tenantId: string;
@@ -62,7 +64,7 @@ interface AnalyticsData {
 export default function SaaSAnalyticsDashboard({ tenantId, className = '' }: SaaSAnalyticsDashboardProps) {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'usage' | 'revenue' | 'optimization'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'usage' | 'revenue' | 'optimization' | 'alerts'>('overview');
   const [dateRange, setDateRange] = useState('30d');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -175,6 +177,7 @@ export default function SaaSAnalyticsDashboard({ tenantId, className = '' }: Saa
             { id: 'usage', label: 'Usage Analytics', icon: Activity },
             { id: 'revenue', label: 'Revenue', icon: DollarSign },
             { id: 'optimization', label: 'Optimization', icon: TrendingUp },
+            { id: 'alerts', label: 'Alerts & Reports', icon: Bell },
           ].map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -353,6 +356,10 @@ export default function SaaSAnalyticsDashboard({ tenantId, className = '' }: Saa
             </div>
           </div>
         </div>
+      )}
+
+      {activeTab === 'alerts' && (
+        <AnalyticsOverview tenantId={tenantId} />
       )}
     </div>
   );
