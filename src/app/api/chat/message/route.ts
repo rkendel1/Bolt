@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase/client';
 import { aiService } from '@/lib/ai/openai';
 import { boltLogger } from '@/lib/logging/logger';
+import { intentExecutor } from '@/lib/execution/intent-executor';
 import { ChatMessage, ChatbotConfig } from '@/types';
 
 export async function POST(request: NextRequest) {
@@ -95,6 +96,18 @@ export async function POST(request: NextRequest) {
     // Analyze user intent
     const intentAnalysis = await aiService.analyzeUserIntent(content, tenantId);
 
+    // Execute intent-based actions
+    const executionResult = await intentExecutor.executeIntent({
+      intent: intentAnalysis.intent,
+      entities: intentAnalysis.entities,
+      context: {
+        tenantId,
+        userId,
+        sessionId,
+        stripeContext: session.context?.stripe_context,
+      },
+    });
+
     // Generate AI response
     const aiResponse = await aiService.generateResponse(
       messages || [],
@@ -103,6 +116,7 @@ export async function POST(request: NextRequest) {
         knowledgeBase: knowledgeEntries,
         stripeContext: session.context?.stripe_context,
         workflowContext: session.context?.current_workflow,
+        executionResult,
       }
     );
 
@@ -111,12 +125,15 @@ export async function POST(request: NextRequest) {
       session_id: sessionId,
       user_id: userId,
       tenant_id: tenantId,
-      content: aiResponse,
+      content: executionResult.message || aiResponse,
       role: 'assistant',
       metadata: {
         intent: intentAnalysis.intent,
         confidence: intentAnalysis.confidence,
         knowledge_entries_used: knowledgeEntries.length,
+        execution_success: executionResult.success,
+        actions_taken: executionResult.actions_taken,
+        execution_data: executionResult.data,
       },
     };
 
