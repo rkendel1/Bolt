@@ -3,11 +3,16 @@
 import React, { useState } from 'react';
 import { Bot, MessageSquare, Settings, Zap, Shield, Code, Users, BarChart3, ArrowRight, Play } from 'lucide-react';
 import ChatInterface from '@/components/chatbot/ChatInterface';
+import EnhancedChatInterface from '@/components/chatbot/EnhancedChatInterface';
+import MobileOptimizedChat from '@/components/chatbot/MobileOptimizedChat';
 import Dashboard from '@/components/dashboard/Dashboard';
+import ChatDashboardIntegration from '@/components/dashboard/ChatDashboardIntegration';
 
 export default function Home() {
   const [showChat, setShowChat] = useState(false);
   const [showDashboard, setShowDashboard] = useState(false);
+  const [showEnhancedChat, setShowEnhancedChat] = useState(false);
+  const [showChatDashboard, setShowChatDashboard] = useState(false);
   
   // Demo data - in real app, this would come from authentication
   const demoTenantId = 'demo-tenant-123';
@@ -134,17 +139,17 @@ export default function Home() {
             </p>
             <div className="mt-10 flex items-center justify-center space-x-6">
               <button
-                onClick={() => setShowChat(true)}
+                onClick={() => setShowEnhancedChat(true)}
                 className="flex items-center space-x-2 px-8 py-3 bg-blue-600 text-white text-lg font-medium rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Play className="w-5 h-5" />
-                <span>Try Live Demo</span>
+                <span>Try Enhanced Demo</span>
               </button>
               <button
-                onClick={() => setShowDashboard(true)}
+                onClick={() => setShowChatDashboard(true)}
                 className="flex items-center space-x-2 px-8 py-3 bg-white text-gray-900 text-lg font-medium rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
               >
-                <span>View Dashboard</span>
+                <span>View Analytics Dashboard</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -249,6 +254,59 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Enhanced Chat Modal */}
+      {showEnhancedChat && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="w-full max-w-6xl h-[85vh] mx-4">
+            <EnhancedChatInterface
+              tenantId={demoTenantId}
+              userId={demoUserId}
+              onClose={() => setShowEnhancedChat(false)}
+              showRecommendations={true}
+              className="h-full"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Chat Dashboard Modal */}
+      {showChatDashboard && (
+        <div className="fixed inset-0 z-50 bg-gray-50 overflow-y-auto">
+          <div className="min-h-screen">
+            <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                  <div className="flex items-center space-x-4">
+                    <Bot className="w-8 h-8 text-blue-600" />
+                    <h1 className="text-xl font-bold text-gray-900">Bolt AI Analytics</h1>
+                  </div>
+                  <button
+                    onClick={() => setShowChatDashboard(false)}
+                    className="px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    ← Back to Home
+                  </button>
+                </div>
+              </div>
+            </nav>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <ChatDashboardIntegration
+                tenantId={demoTenantId}
+                userId={demoUserId}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Optimized Chat */}
+      <MobileOptimizedChat
+        tenantId={demoTenantId}
+        userId={demoUserId}
+        isOpen={showEnhancedChat}
+        onToggle={() => setShowEnhancedChat(!showEnhancedChat)}
+      />
     </div>
   );
 }
