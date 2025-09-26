@@ -1,0 +1,6 @@
+{"error":"Failed to create session: TypeError: fetch failed","level":"error","message":"Failed to create chat session","service":"bolt-ai-chatbot","timestamp":"2025-09-26T02:36:34.059Z"}
+{"error":"Failed to create session: TypeError: fetch failed","level":"error","message":"Failed to create chat session","service":"bolt-ai-chatbot","timestamp":"2025-09-26T02:36:34.065Z"}
+{"error":"Failed to count sessions: TypeError: fetch failed","level":"error","message":"Failed to get dashboard stats","service":"bolt-ai-chatbot","timestamp":"2025-09-26T02:36:52.691Z"}
+{"error":"Failed to count sessions: TypeError: fetch failed","level":"error","message":"Failed to get dashboard stats","service":"bolt-ai-chatbot","timestamp":"2025-09-26T02:36:52.695Z"}
+{"error":"Failed to fetch sessions: TypeError: fetch failed","level":"error","message":"Failed to get dashboard sessions","service":"bolt-ai-chatbot","timestamp":"2025-09-26T02:36:53.135Z"}
+{"error":"Failed to fetch sessions: TypeError: fetch failed","level":"error","message":"Failed to get dashboard sessions","service":"bolt-ai-chatbot","timestamp":"2025-09-26T02:36:53.138Z"}
